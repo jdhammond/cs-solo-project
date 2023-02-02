@@ -9,7 +9,7 @@ controllers.getQuestions = async (req, res, next) => {
   console.log('hello from getquestions');
   try {
     const data = await db.Question.find({});
-    console.log(data);
+    //console.log(data);
     res.locals.data = data;
     return next();
   } catch (err) {
@@ -40,6 +40,28 @@ controllers.addPerson = async (req, res, next) => {
     return next();
   } catch {
     return next(err);
+  }
+};
+
+controllers.updateAnswers = async (req, res, next) => {
+  console.log('hello from updateAnswers');
+  try {
+    //console.log(req.body);
+    // loop through the question answers provided, pushing to array
+    for (const el of req.body.questions) {
+      const question = await db.Question.findOne({ _id: el.questionId });
+      question.answers.push({
+        answer: el.questionAnswer,
+        respondent: req.body.user._id,
+      });
+      console.log('saved answer to ' + el.questionText);
+      await question.save();
+    }
+    //await user.save();
+    return next();
+  } catch (err) {
+    console.log(err);
+    return next({ err });
   }
 };
 

@@ -5,10 +5,12 @@ import { render } from 'react-dom';
 const App = () => {
   // state
   let currentUser = {
-    name: 'jdh',
+    _id: '63db155d892950ccafb0cce3',
+    name: 'abc',
     admin: true,
     anonymous: false,
     avatar: null,
+    answers: {},
   };
   const questionsList = [
     // {
@@ -29,6 +31,7 @@ const App = () => {
   ];
 
   const [questions, updateQandA] = React.useState(questionsList);
+  const [user, updateUser] = React.useState(currentUser);
 
   // on initial load, grab questions from db
   // empty array as 2nd parameter means this will only run once, on load
@@ -52,7 +55,6 @@ const App = () => {
 
   useEffect(() => {
     console.log('answer updated');
-    // const updateAnswer = (answer) => {
   });
 
   // When an answer is changed, update state
@@ -69,14 +71,13 @@ const App = () => {
     updateQandA(newQandA);
   };
 
-  // Add a question
+  // Add a question <== currently new question DOESN'T appear right away
   const submitQuestion = async () => {
     const qInput = document.querySelector('#new-question-text');
     // make new question
     const newQuestion = {
-      questionId: questions.length,
-      questionText: qInput.value,
-      questionAnswer: null,
+      text: qInput.value,
+      answers: [],
     };
     qInput.value = '';
     await fetch('/questions', {
@@ -85,14 +86,27 @@ const App = () => {
       body: JSON.stringify(newQuestion),
     }).then((res) => {
       console.log(`question added: ${res}`);
+      console.log(`qList length ${questionsList.length}`);
     });
-    updateQandA([...questions.concat(newQuestion)]);
+    //updateQandA([...questions.concat(newQuestion)]);
+  };
+
+  const saveToDB = async () => {
+    console.log(JSON.stringify({ user: currentUser, questions: questions }));
+    await fetch('/questions', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user: currentUser, questions: questions }),
+    }).then((res) => {
+      console.log(`body sent to server: ${JSON.stringify(res)}`);
+    });
   };
 
   return (
     <div>
       <QuestionBox questionsList={questions} handleChange={handleChange} />
       <QuestionCreator submitQuestion={submitQuestion} />
+      <NavButtons saveToDB={saveToDB} />
     </div>
   );
 };
@@ -103,6 +117,7 @@ class QuestionBox extends Component {
     for (let q of this.props.questionsList) {
       cards.push(
         <QuestionCard
+          id={q.questionId}
           question={q.questionText}
           answer={q.questionAnswer}
           handleChange={(e) => this.props.handleChange(e, q.questionId)}
@@ -119,7 +134,7 @@ class QuestionCard extends Component {
       <div className='question-card'>
         <div className='question-text'>{this.props.question}</div>
         <input
-          id='question-answer-1'
+          id={`card${this.props.id}`}
           type='range'
           min='-10'
           max='10'
@@ -146,6 +161,15 @@ class QuestionCreator extends Component {
       </div>
     );
   }
+}
+
+function NavButtons(props) {
+  return (
+    <div>
+      <button onClick={props.saveToDB}>Save Answers</button>
+      <button>Visualize</button>
+    </div>
+  );
 }
 
 export default App;

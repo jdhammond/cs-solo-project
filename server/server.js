@@ -5,7 +5,9 @@ const app = express();
 const controllers = require('./controllers');
 const PORT = 3000;
 // parse request body
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get(
   '/index',
@@ -24,6 +26,10 @@ app.post('/questions', controllers.addQuestion, (req, res) => {
 
 app.post('/users', controllers.addPerson, (req, res) => {
   return res.status(200).send('Person stored!');
+});
+
+app.patch('/questions', controllers.updateAnswers, (req, res) => {
+  return res.status(200).send('Answers logged to DB.');
 });
 
 //404 handler

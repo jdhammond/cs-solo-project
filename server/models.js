@@ -24,6 +24,11 @@ const personSchema = new Schema({
   avatar: String,
 });
 
+// const answerSchema = new Schema({
+//   question: { type: Schema.Types.ObjectId, ref: 'question' },
+//   answer: Number,
+// });
+
 const Person = mongoose.model('person', personSchema);
 
 const questionSchema = new Schema({
@@ -32,6 +37,7 @@ const questionSchema = new Schema({
     {
       answer: Number,
       respondent: { type: Schema.Types.ObjectId, ref: 'person' },
+      time: Number,
     },
   ],
 });
