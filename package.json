@@ -280,6 +280,7 @@
     "tapable": "^2.2.1",
     "terser": "^5.16.1",
     "terser-webpack-plugin": "^5.3.6",
+    "three": "^0.149.0",
     "thunky": "^1.1.0",
     "to-fast-properties": "^2.0.0",
     "to-regex-range": "^5.0.1",

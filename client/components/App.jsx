@@ -1,6 +1,8 @@
+// import { application } from 'express';
 import { update } from 'lodash';
 import React, { Component, useState, useEffect } from 'react';
 import { render } from 'react-dom';
+import Visualizer from './Visualizer.jsx';
 
 const App = () => {
   const questionsList = [];
@@ -10,15 +12,7 @@ const App = () => {
   const [questions, updateQandA] = React.useState(questionsList);
   const [userList, updateUserList] = React.useState(allUsers);
   let [currentUser, updateUser] = React.useState(user);
-
-  // let currentUser = {
-  //   _id: '63db155d892950ccafb0cce3',
-  //   name: 'abc',
-  //   admin: true,
-  //   anonymous: false,
-  //   avatar: null,
-  //   answers: {},
-  // };
+  const [visQuestions, updateVisQuestions] = React.useState([]);
 
   // on initial load, grab questions from db
   // empty array as 2nd parameter means this will only run once, on load
@@ -47,7 +41,7 @@ const App = () => {
         updateQandA(newQuestionsList);
       })
       .catch((err) => console.log(err));
-  }, []);
+  }, [questions.length]);
 
   // when new user is selected, update sliders to reflect their opinions
   // useEffect(() => {
@@ -99,6 +93,20 @@ const App = () => {
     updateQandA(newQandA);
   };
 
+  // const handleCheck = (e, id) => {
+  //   console.log(e.target.value, id);
+  //   const newVisQuestions = [...visQuestions];
+  //   const targetQuestion = questions.find((el) => el.questionId === id);
+  //   if (e.target.value === 'on') {
+  //     newVisQuestions.push(targetQuestion);
+  //   } else {
+  //     const removeIndex = questions.indexOf(targetQuestion);
+  //     newVisQuestions.splice(removeIndex, 1);
+  //   }
+  //   updateVisQuestions(newVisQuestions);
+  //   console.log(visQuestions);
+  // };
+
   const changeUser = async (e) => {
     // use the value of the dropdown selection
     // find user with the matching id
@@ -112,7 +120,23 @@ const App = () => {
     console.log('user now ' + JSON.stringify(currentUser));
     //console.log('currentUser ' + JSON.stringify(currentUser));
     //console.log('user: ' + user), console.log('currentUser: ' + currentUser);
-    const updatedAnswers = await getAnswers(currentUser._id, questions);
+    getAnswers(currentUser._id, questions);
+  };
+
+  const getThreeAnswersFromAll = async (userList, questionArray) => {
+    console.log('userList: ' + userList);
+    await fetch('/visfind', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        questions: questionArray,
+        users: userList,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('data from db: ' + JSON.stringify(data));
+      });
   };
 
   const getAnswers = async (userId, questions) => {
@@ -188,15 +212,25 @@ const App = () => {
 
   return (
     <div>
-      <div>{currentUser.name}</div>
       <UserSelect userList={userList} changeUser={changeUser} />
       <QuestionBox
         questionsList={questions}
         handleChange={handleChange}
         deleteQuestion={deleteQuestion}
+        // handleCheck={handleCheck}
       />
       <QuestionCreator submitQuestion={submitQuestion} />
-      <NavButtons saveToDB={saveToDB} />
+      <NavButtons
+        saveToDB={saveToDB}
+        getVis={() =>
+          getThreeAnswersFromAll(userList, [
+            questions[0],
+            questions[1],
+            questions[2],
+          ])
+        }
+      />
+      <Visualizer visQuestions={visQuestions} />
     </div>
   );
 };
@@ -212,6 +246,7 @@ class QuestionBox extends Component {
           answer={q.questionAnswer}
           handleChange={(e) => this.props.handleChange(e, q.questionId)}
           deleteQuestion={(e) => this.props.deleteQuestion(e, q.questionId)}
+          handleCheck={(e) => this.props.handleCheck(e, q.questionId)}
         />
       );
     }
@@ -224,6 +259,11 @@ class QuestionCard extends Component {
     return (
       <div className='question-card'>
         <div className='question-text'>{this.props.question}</div>
+        {/* <input
+          id={`check${this.props.id}`}
+          onChange={this.props.handleCheck} // <== click or change?
+          type='checkbox'
+        /> */}
         <input
           id={`card${this.props.id}`}
           type='range'
@@ -291,7 +331,7 @@ function NavButtons(props) {
   return (
     <div>
       <button onClick={props.saveToDB}>Save Answers</button>
-      <button>Visualize</button>
+      <button onClick={props.getVis}>Visualize</button>
     </div>
   );
 }

@@ -77,9 +77,41 @@ controllers.updateAnswers = async (req, res, next) => {
   }
 };
 
+controllers.getThreeAnswers = async (req, res, next) => {
+  console.log('hello from getThree');
+  console.log(JSON.stringify(req.body));
+  try {
+    const answers = [];
+    for (const user of req.body.users) {
+      console.log(user.name);
+      const answerObj = { id: user._id, name: user.name, answers: [] };
+      for (const question of req.body.questions) {
+        const currentQuestion = await db.Question.findOne({
+          _id: question.questionId,
+        });
+        //console.log('answers: ' + JSON.stringify(currentQuestion.answers));
+        console.log(user._id);
+        const answer = currentQuestion.answers.reverse().find((el) => {
+          return el.respondent.toString() === user._id;
+        });
+        if (answer) {
+          console.log(answer.answer);
+          answerObj.answers.push(answer);
+        }
+      }
+      answers.push(answerObj);
+    }
+    res.locals.answers = answers;
+    console.log(res.locals.answers);
+    return next();
+  } catch (err) {
+    console.log(err);
+    return next({ err });
+  }
+};
+
 controllers.getAnswers = async (req, res, next) => {
   console.log('hello from getanswers');
-  console.log(JSON.stringify(req.body));
   try {
     const answers = {};
     for (const el of req.body.questions) {
@@ -97,8 +129,7 @@ controllers.getAnswers = async (req, res, next) => {
     }
     //console.log(JSON.stringify(answers));
     res.locals.answers = answers;
-    console.log('user: ' + req.body.userId);
-    console.log('res.locals: ' + JSON.stringify(res.locals.answers));
+    // console.log('res.locals: ' + JSON.stringify(res.locals.answers));
     return next();
   } catch (err) {
     console.log(err);

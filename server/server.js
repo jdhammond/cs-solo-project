@@ -16,6 +16,13 @@ app.get(
   )
 );
 
+// app.get(
+//   '/index',
+//   express.static(
+//     path.resolve('/Users/jdh/Documents/codesmith/webpack-test/styles.css')
+//   )
+// );
+
 app.get('/users', controllers.getAllUsers, (req, res) => {
   return res.status(200).json(res.locals.users);
 });
@@ -34,6 +41,10 @@ app.post('/readquestions', controllers.getAnswers, (req, res) => {
 
 app.post('/users', controllers.addPerson, (req, res) => {
   return res.status(200).send('Person stored!');
+});
+
+app.post('/visfind', controllers.getThreeAnswers, (req, res) => {
+  return res.status(200).send(res.locals.answers);
 });
 
 app.patch('/questions', controllers.updateAnswers, (req, res) => {
