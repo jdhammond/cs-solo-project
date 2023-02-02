@@ -131,9 +131,12 @@ const App = () => {
         const newQandA = [...questions];
         for (const el of newQandA) {
           console.log(el.questionId);
-          // if there exists in the reteruned data an answer to a question whose id matches a question on the screen
+          // if there exists in the reteruned data an answer to a question whose id matches a question on the screen,
+          // restored that answer; or null if there's no
           if (data[el.questionId]) {
             el.questionAnswer = data[el.questionId];
+          } else {
+            el.questionAnswer = null;
           }
         }
         console.log('updated answers ' + JSON.stringify(newQandA));
@@ -185,7 +188,7 @@ const App = () => {
 
   return (
     <div>
-      <div>{JSON.stringify(user)}</div>
+      <div>{currentUser.name}</div>
       <UserSelect userList={userList} changeUser={changeUser} />
       <QuestionBox
         questionsList={questions}

@@ -86,9 +86,10 @@ controllers.getAnswers = async (req, res, next) => {
       const currentQuestion = await db.Question.findOne({ _id: el.questionId });
       //console.log(currentQuestion);
       // find within array of answers to the question one whose respondent id matches the id of the user selected on the front end
-      const answer = currentQuestion.answers.find(
-        (el) => el.respondent.toString() === req.body.userId
-      );
+      const answer =
+        currentQuestion.answers
+          .reverse()
+          .find((el) => el.respondent.toString() === req.body.userId) ?? null;
       if (answer) {
         // has the inefficient but otherwise desirable effect of overwriting all but the most recent answer for a given question
         answers[el.questionId] = answer.answer;
