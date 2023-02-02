@@ -16,6 +16,10 @@ app.get(
   )
 );
 
+app.get('/users', controllers.getAllUsers, (req, res) => {
+  return res.status(200).json(res.locals.users);
+});
+
 app.get('/questions', controllers.getQuestions, (req, res) => {
   return res.status(200).json(res.locals.data);
 });
@@ -30,6 +34,10 @@ app.post('/users', controllers.addPerson, (req, res) => {
 
 app.patch('/questions', controllers.updateAnswers, (req, res) => {
   return res.status(200).send('Answers logged to DB.');
+});
+
+app.delete('/questions/:id', controllers.deleteQuestion, (req, res) => {
+  return res.status(200).send('question deleted!');
 });
 
 //404 handler

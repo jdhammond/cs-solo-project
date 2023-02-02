@@ -4,6 +4,18 @@ const db = require('./models.js');
 
 const controllers = {};
 
+controllers.getAllUsers = async (req, res, next) => {
+  console.log('hello from getallusers');
+  try {
+    const data = await db.Person.find({});
+    console.log(data);
+    res.locals.users = data;
+    return next();
+  } catch (err) {
+    return next({ log: err });
+  }
+};
+
 // get question and answer data
 controllers.getQuestions = async (req, res, next) => {
   console.log('hello from getquestions');
@@ -61,6 +73,18 @@ controllers.updateAnswers = async (req, res, next) => {
     return next();
   } catch (err) {
     console.log(err);
+    return next({ err });
+  }
+};
+
+controllers.deleteQuestion = async (req, res, next) => {
+  console.log('hello from deletequestion');
+  console.log(req.params.id);
+  try {
+    const deleted = await db.Question.findByIdAndDelete({ _id: req.params.id });
+    console.log('deleted ' + deleted);
+    return next();
+  } catch (err) {
     return next({ err });
   }
 };

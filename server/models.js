@@ -33,11 +33,11 @@ const Person = mongoose.model('person', personSchema);
 
 const questionSchema = new Schema({
   text: String,
+  deleted: false,
   answers: [
     {
       answer: Number,
       respondent: { type: Schema.Types.ObjectId, ref: 'person' },
-      time: Number,
     },
   ],
 });

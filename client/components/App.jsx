@@ -3,7 +3,13 @@ import React, { Component, useState, useEffect } from 'react';
 import { render } from 'react-dom';
 
 const App = () => {
-  // state
+  const questionsList = [];
+  const allUsers = [];
+
+  const [questions, updateQandA] = React.useState(questionsList);
+  const [userList, updateUserList] = React.useState(allUsers);
+  const [user, updateUser] = React.useState(currentUser);
+
   let currentUser = {
     _id: '63db155d892950ccafb0cce3',
     name: 'abc',
@@ -12,34 +18,21 @@ const App = () => {
     avatar: null,
     answers: {},
   };
-  const questionsList = [
-    // {
-    //   questionId: 0,
-    //   questionText: 'Are you a cat person or a dog person?',
-    //   questionAnswer: null,
-    // },
-    // {
-    //   questionId: 1,
-    //   questionText: 'Heist or pyramid scheme?',
-    //   questionAnswer: 9,
-    // },
-    // {
-    //   questionId: 2,
-    //   questionText: 'Redux or self-immolation?',
-    //   questionAnswer: null,
-    // },
-  ];
-
-  const [questions, updateQandA] = React.useState(questionsList);
-  const [user, updateUser] = React.useState(currentUser);
 
   // on initial load, grab questions from db
   // empty array as 2nd parameter means this will only run once, on load
+
   useEffect(() => {
+    fetch('/users/')
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        updateUserList(data);
+      })
+      .catch((err) => console.log(err));
     fetch('/questions/')
       .then((res) => res.json())
       .then((data) => {
-        console.log('data is ' + JSON.stringify(data));
         const newQuestionsList = [];
         for (let el of data) {
           newQuestionsList.push({
@@ -71,6 +64,15 @@ const App = () => {
     updateQandA(newQandA);
   };
 
+  const deleteQuestion = async (e, id) => {
+    console.log(e);
+    console.log(id);
+    await fetch(`/questions/${id}`, {
+      method: 'DELETE',
+    });
+    updateQandA(questions.filter((el) => el.questionId !== id));
+  };
+
   // Add a question <== currently new question DOESN'T appear right away
   const submitQuestion = async () => {
     const qInput = document.querySelector('#new-question-text');
@@ -86,7 +88,6 @@ const App = () => {
       body: JSON.stringify(newQuestion),
     }).then((res) => {
       console.log(`question added: ${res}`);
-      console.log(`qList length ${questionsList.length}`);
     });
     //updateQandA([...questions.concat(newQuestion)]);
   };
@@ -104,7 +105,12 @@ const App = () => {
 
   return (
     <div>
-      <QuestionBox questionsList={questions} handleChange={handleChange} />
+      <UserSelect userList={userList} />
+      <QuestionBox
+        questionsList={questions}
+        handleChange={handleChange}
+        deleteQuestion={deleteQuestion}
+      />
       <QuestionCreator submitQuestion={submitQuestion} />
       <NavButtons saveToDB={saveToDB} />
     </div>
@@ -121,6 +127,7 @@ class QuestionBox extends Component {
           question={q.questionText}
           answer={q.questionAnswer}
           handleChange={(e) => this.props.handleChange(e, q.questionId)}
+          deleteQuestion={(e) => this.props.deleteQuestion(e, q.questionId)}
         />
       );
     }
@@ -142,8 +149,21 @@ class QuestionCard extends Component {
           value={this.props.answer === null ? 0 : this.props.answer}
           onChange={this.props.handleChange}
         />
+        <button
+          id={`delete${this.props.id}`}
+          onClick={this.props.deleteQuestion}
+          className='deleteX'
+        >
+          X
+        </button>
       </div>
     );
+  }
+}
+
+class UserSelect extends Component {
+  render() {
+    return <div>{'hello'}</div>;
   }
 }
 
