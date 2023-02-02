@@ -5,29 +5,32 @@ import { render } from 'react-dom';
 const App = () => {
   const questionsList = [];
   const allUsers = [];
+  let user = {};
 
   const [questions, updateQandA] = React.useState(questionsList);
   const [userList, updateUserList] = React.useState(allUsers);
-  const [user, updateUser] = React.useState(currentUser);
+  let [currentUser, updateUser] = React.useState(user);
 
-  let currentUser = {
-    _id: '63db155d892950ccafb0cce3',
-    name: 'abc',
-    admin: true,
-    anonymous: false,
-    avatar: null,
-    answers: {},
-  };
+  // let currentUser = {
+  //   _id: '63db155d892950ccafb0cce3',
+  //   name: 'abc',
+  //   admin: true,
+  //   anonymous: false,
+  //   avatar: null,
+  //   answers: {},
+  // };
 
   // on initial load, grab questions from db
   // empty array as 2nd parameter means this will only run once, on load
-
   useEffect(() => {
     fetch('/users/')
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
-        updateUserList(data);
+        const newUsersList = [];
+        for (let el of data) {
+          newUsersList.push(el);
+        }
+        updateUserList(newUsersList);
       })
       .catch((err) => console.log(err));
     fetch('/questions/')
@@ -46,9 +49,41 @@ const App = () => {
       .catch((err) => console.log(err));
   }, []);
 
-  useEffect(() => {
-    console.log('answer updated');
-  });
+  // when new user is selected, update sliders to reflect their opinions
+  // useEffect(() => {
+  //   console.log('user was changed');
+  //   // loop through the questions on the page
+  //   // extract from each one's answer array the current user's answer, if any
+  //   // update the value of that slider (questionAnswer) w/newQandA
+  //   const newQuestions = [...questions];
+
+  // }, [currentUser]);
+
+  // v broken useeffect conditional vv
+  // useEffect(() => {
+  //   console.log('current user has changed to ' + currentUser.name);
+  //   let getAnswers = async (userId, questions) => {
+  //     await fetch('/readquestions', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({
+  //         userId,
+  //         questions,
+  //       }),
+  //     })
+  //       .then((res) => {
+  //         console.log('res: ' + res);
+  //         return res.json();
+  //       })
+  //       .then((data) => {
+  //         console.log('data from db: ' + data);
+  //         return data;
+  //       })
+  //       .catch((err) => console.log(err));
+  //   };
+
+  //   getAnswers(currentUser._id, questions);
+  // }, [currentUser.name]);
 
   // When an answer is changed, update state
   const handleChange = (e, id) => {
@@ -62,6 +97,49 @@ const App = () => {
     // console.log(newQandA);
     // replace old object
     updateQandA(newQandA);
+  };
+
+  const changeUser = async (e) => {
+    // use the value of the dropdown selection
+    // find user with the matching id
+    // set current user to that
+
+    // store current user's answers to DB ???? <===
+    console.log(e.target.value);
+    console.log('prev user ' + JSON.stringify(currentUser));
+    const foundUser = userList.find((el) => el._id === e.target.value);
+    updateUser(Object.assign(currentUser, foundUser));
+    console.log('user now ' + JSON.stringify(currentUser));
+    //console.log('currentUser ' + JSON.stringify(currentUser));
+    //console.log('user: ' + user), console.log('currentUser: ' + currentUser);
+    const updatedAnswers = await getAnswers(currentUser._id, questions);
+  };
+
+  const getAnswers = async (userId, questions) => {
+    await fetch('/readquestions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        questions,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('data from db: ' + JSON.stringify(data));
+        console.log(questions);
+        const newQandA = [...questions];
+        for (const el of newQandA) {
+          console.log(el.questionId);
+          // if there exists in the reteruned data an answer to a question whose id matches a question on the screen
+          if (data[el.questionId]) {
+            el.questionAnswer = data[el.questionId];
+          }
+        }
+        console.log('updated answers ' + JSON.stringify(newQandA));
+        updateQandA(newQandA);
+      })
+      .catch((err) => console.log(err));
   };
 
   const deleteQuestion = async (e, id) => {
@@ -98,14 +176,17 @@ const App = () => {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user: currentUser, questions: questions }),
-    }).then((res) => {
-      console.log(`body sent to server: ${JSON.stringify(res)}`);
-    });
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(`body sent to server: ${JSON.stringify(data)}`);
+      });
   };
 
   return (
     <div>
-      <UserSelect userList={userList} />
+      <div>{JSON.stringify(user)}</div>
+      <UserSelect userList={userList} changeUser={changeUser} />
       <QuestionBox
         questionsList={questions}
         handleChange={handleChange}
@@ -163,7 +244,27 @@ class QuestionCard extends Component {
 
 class UserSelect extends Component {
   render() {
-    return <div>{'hello'}</div>;
+    //make a dropdown out of this; set useeffect to snap the sliders to a user's answers when user changes
+    //also think instant update of added queestion
+    //login?
+    //visuals! 3js?
+
+    const usernames = [];
+    this.props.userList.forEach((el) => {
+      usernames.push(<option value={el._id}>{el.name}</option>);
+    });
+
+    return (
+      <div>
+        <select
+          name='user'
+          id='user'
+          onChange={(e) => this.props.changeUser(e)}
+        >
+          {usernames}
+        </select>
+      </div>
+    );
   }
 }
 

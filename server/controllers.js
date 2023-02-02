@@ -8,7 +8,7 @@ controllers.getAllUsers = async (req, res, next) => {
   console.log('hello from getallusers');
   try {
     const data = await db.Person.find({});
-    console.log(data);
+    //console.log(data);
     res.locals.users = data;
     return next();
   } catch (err) {
@@ -70,6 +70,34 @@ controllers.updateAnswers = async (req, res, next) => {
       await question.save();
     }
     //await user.save();
+    return next();
+  } catch (err) {
+    console.log(err);
+    return next({ err });
+  }
+};
+
+controllers.getAnswers = async (req, res, next) => {
+  console.log('hello from getanswers');
+  console.log(JSON.stringify(req.body));
+  try {
+    const answers = {};
+    for (const el of req.body.questions) {
+      const currentQuestion = await db.Question.findOne({ _id: el.questionId });
+      //console.log(currentQuestion);
+      // find within array of answers to the question one whose respondent id matches the id of the user selected on the front end
+      const answer = currentQuestion.answers.find(
+        (el) => el.respondent.toString() === req.body.userId
+      );
+      if (answer) {
+        // has the inefficient but otherwise desirable effect of overwriting all but the most recent answer for a given question
+        answers[el.questionId] = answer.answer;
+      }
+    }
+    //console.log(JSON.stringify(answers));
+    res.locals.answers = answers;
+    console.log('user: ' + req.body.userId);
+    console.log('res.locals: ' + JSON.stringify(res.locals.answers));
     return next();
   } catch (err) {
     console.log(err);

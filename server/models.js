@@ -18,10 +18,11 @@ const Schema = mongoose.Schema;
 
 // schema for people
 const personSchema = new Schema({
-  name: String,
-  admin: Boolean,
+  name: { type: String, unique: true },
+  isAdmin: Boolean,
   anonymous: Boolean,
   avatar: String,
+  password: String,
 });
 
 // const answerSchema = new Schema({

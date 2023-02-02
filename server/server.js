@@ -28,6 +28,10 @@ app.post('/questions', controllers.addQuestion, (req, res) => {
   return res.status(200).send('Question stored!');
 });
 
+app.post('/readquestions', controllers.getAnswers, (req, res) => {
+  return res.status(200).send(res.locals.answers);
+});
+
 app.post('/users', controllers.addPerson, (req, res) => {
   return res.status(200).send('Person stored!');
 });
