@@ -92,11 +92,15 @@ controllers.getThreeAnswers = async (req, res, next) => {
         //console.log('answers: ' + JSON.stringify(currentQuestion.answers));
         console.log(user._id);
         const answer = currentQuestion.answers.reverse().find((el) => {
-          return el.respondent.toString() === user._id;
+          if (el.respondent.toString()) {
+            return el.respondent.toString() === user._id;
+          } else {
+            return;
+          }
         });
         if (answer) {
           console.log(answer.answer);
-          answerObj.answers.push(answer);
+          answerObj.answers.push(answer.answer);
         }
       }
       answers.push(answerObj);
@@ -112,6 +116,7 @@ controllers.getThreeAnswers = async (req, res, next) => {
 
 controllers.getAnswers = async (req, res, next) => {
   console.log('hello from getanswers');
+  console.log(req.body);
   try {
     const answers = {};
     for (const el of req.body.questions) {

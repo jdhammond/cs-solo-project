@@ -8,11 +8,12 @@ const App = () => {
   const questionsList = [];
   const allUsers = [];
   let user = {};
+  const vis = [];
 
   const [questions, updateQandA] = React.useState(questionsList);
   const [userList, updateUserList] = React.useState(allUsers);
   let [currentUser, updateUser] = React.useState(user);
-  const [visQuestions, updateVisQuestions] = React.useState([]);
+  let [visData, updateVisData] = React.useState(vis);
 
   // on initial load, grab questions from db
   // empty array as 2nd parameter means this will only run once, on load
@@ -135,7 +136,9 @@ const App = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log('data from db: ' + JSON.stringify(data));
+        console.log('data from db: ' + data);
+        updateVisData(data.slice());
+        console.log('new visData: ', visData);
       });
   };
 
@@ -223,6 +226,7 @@ const App = () => {
       <NavButtons
         saveToDB={saveToDB}
         getVis={() =>
+          // query answers from all users for first three questions (currently hard-coded, ideally changeable)
           getThreeAnswersFromAll(userList, [
             questions[0],
             questions[1],
@@ -230,7 +234,7 @@ const App = () => {
           ])
         }
       />
-      <Visualizer visQuestions={visQuestions} />
+      <Visualizer visData={visData} />
     </div>
   );
 };
@@ -298,7 +302,7 @@ class UserSelect extends Component {
     });
 
     return (
-      <div>
+      <div class='userChoiceDiv'>
         <select
           name='user'
           id='user'
@@ -315,7 +319,6 @@ class QuestionCreator extends Component {
   render() {
     return (
       <div className='new-question'>
-        <div>Contribute a question</div>
         <input
           type='text'
           id='new-question-text'
@@ -329,7 +332,7 @@ class QuestionCreator extends Component {
 
 function NavButtons(props) {
   return (
-    <div>
+    <div className='saveAndVisButtons'>
       <button onClick={props.saveToDB}>Save Answers</button>
       <button onClick={props.getVis}>Visualize</button>
     </div>
